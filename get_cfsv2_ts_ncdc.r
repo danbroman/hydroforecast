@@ -58,12 +58,20 @@ get_cfs_ts_grb = function(var, time_init_sel, fcst_lead = 1440, tempvar){
 	hourinit = str_pad(hour(time_init_sel), 2, pad = "0")
 
 	initdatefilestr = paste0(yearinit, monthinit, dayinit)
-	initdatestr = paste0(yearinit, monthinit, daynow, hourinit)
+	initdatestr = paste0(yearinit, monthinit, dayinit, hourinit)
+	inityrmon = paste0(yearinit, monthinit)
 	
+	yearfcst = year(time_fcst_sel)
+	monthfcst = str_pad(month(time_fcst_sel), 2, pad = "0")
+	dayfcst = str_pad(day(time_fcst_sel), 2, pad = "0")
+	hourfcst = str_pad(hour(time_fcst_sel), 2, pad = "0")
+	
+	fcstdatestr = paste0(yearfcst, monthfcst, dayfcst, hourfcst)
+
 	fcst_lead_list = seq(from = 6, to = fcst_lead, by = 6)
 	fcst_match_list = paste(paste0(':', fcst_lead_list, ' hour fcst:'), collapse = '|')
 	
-	url = paste0(urlhead, yearnow, '/', paste0(yearnow, monthnow), '/', initdatefilestr, '/', initdatestr, '/', var, '.', '01', '.', initdatestr, '.daily.grb2') 
+	url = paste0(urlhead, yearinit, '/', inityrmon, '/', initdatefilestr, '/', initdatestr, '/', var, '.', '01', '.', initdatestr, '.daily.grb2') 
 	
 	destfile_gbm = paste0(dir_gbm, var, '.', initdatestr, '.', '01', '.grb2') 
 	destfile_africa = paste0(dir_africa, var, '.', initdatestr, '.', '01', '.grb2') 
