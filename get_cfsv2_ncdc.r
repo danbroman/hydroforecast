@@ -33,6 +33,11 @@ dir_scratch = ''
 dir_gbm = ''
 dir_africa = ''
 
+lims_lon_gbm = c(73, 98)
+lims_lat_gbm = c(22, 32)
+lims_lon_africa = c(-20, 55)
+lims_lat_africa = c(-40, 40)
+
 fcst_lead_sel = 1440
 time_sel_start = as.POSIXct('2011-04-01', tz = 'utc')
 time_sel_end = as.POSIXct('2011-12-31 18:00', tz = 'utc')
