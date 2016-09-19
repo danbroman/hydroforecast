@@ -79,8 +79,8 @@ get_cfs_grb = function(time_init_sel, time_fcst_sel, tempvar){
 
 	url = paste0(urlhead, yearinit, '/', inityrmon, '/', initdatefilestr, '/', initdatestr, '/flxf', fcstdatestr, '.01.', initdatestr, '.grb2')
 	
-	destfile_gbm = paste0(dir_gbm, fcstdatestr, '_', '01', '_', initdatestr ,'.grb2') 
-	destfile_africa = paste0(dir_africa, fcstdatestr, '_', '01', '_', initdatestr ,'.grb2') 
+	destfile_gbm = paste0(dir_gbm, initdatestr, '.', '01', '.', fcstdatestr, '.grb2') 
+	destfile_africa = paste0(dir_africa, initdatestr, '.', '01', '.', fcstdatestr, '.grb2') 
 	
 	#downloads and subsets (if needed)
 	if(file.exists(destfile_gbm) == F){
