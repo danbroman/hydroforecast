@@ -26,7 +26,6 @@ lims_lat_gbm = c(22, 32)
 lims_lon_africa = c(-20, 55)
 lims_lat_africa = c(-40, 40)
 
-
 fcst_lead_sel = 1440
 time_sel_start = as.POSIXct('2011-04-01', tz = 'utc')
 time_sel_end = as.POSIXct('2016-09-15 18:00', tz = 'utc')
@@ -51,6 +50,8 @@ get_cfs_ts_grb = function(var, time_init_sel, fcst_lead = 1440, tempvar){
 	require(stringr)
 	require(tidyr)
 	
+	urlhead = 'http://nomads.ncdc.noaa.gov/modeldata/cfsv2_forecast_ts_9mon/'
+	
 	yearinit = year(time_init_sel)
 	monthinit = str_pad(month(time_init_sel), 2, pad = "0")
 	dayinit = str_pad(day(time_init_sel), 2, pad = "0")
@@ -62,7 +63,7 @@ get_cfs_ts_grb = function(var, time_init_sel, fcst_lead = 1440, tempvar){
 	fcst_lead_list = seq(from = 6, to = fcst_lead, by = 6)
 	fcst_match_list = paste(paste0(':', fcst_lead_list, ' hour fcst:'), collapse = '|')
 	
-	url = paste0('http://nomads.ncdc.noaa.gov/modeldata/cfsv2_forecast_ts_9mon/', yearnow, '/', paste0(yearnow, monthnow), '/', initdatefilestr, '/', initdatestr, '/', var, '.', '01', '.', initdatestr, '.daily.grb2') 
+	url = paste0(urlhead, yearnow, '/', paste0(yearnow, monthnow), '/', initdatefilestr, '/', initdatestr, '/', var, '.', '01', '.', initdatestr, '.daily.grb2') 
 	
 	destfile_gbm = paste0(dir_gbm, var, '.', initdatestr, '.', '01', '.grb2') 
 	destfile_africa = paste0(dir_africa, var, '.', initdatestr, '.', '01', '.grb2') 
