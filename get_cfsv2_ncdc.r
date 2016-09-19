@@ -25,10 +25,6 @@ date2str = function(dte){
 }
 
 ## user inputs
-savdir_scratch = ''
-savdir_gbm = ''
-savdir_africa = ''
-
 dir_scratch = ''
 dir_gbm = ''
 dir_africa = ''
@@ -71,16 +67,17 @@ get_cfs_grb = function(time_init_sel, time_fcst_sel, tempvar){
 	hourinit = str_pad(hour(time_init_sel), 2, pad = "0")
 
 	initdatefilestr = paste0(yearinit, monthinit, dayinit)
-	initdatestr = paste0(yearinit, monthinit, daynow, hourinit)
+	initdatestr = paste0(yearinit, monthinit, dayinit, hourinit)
+	inityrmon = paste0(yearinit, monthinit)
 	
-	yeafcstr = year(time_fcst_sel)
+	yearfcst = year(time_fcst_sel)
 	monthfcst = str_pad(month(time_fcst_sel), 2, pad = "0")
 	dayfcst = str_pad(day(time_fcst_sel), 2, pad = "0")
 	hourfcst = str_pad(hour(time_fcst_sel), 2, pad = "0")
+	
+	fcstdatestr = paste0(yearfcst, monthfcst, dayfcst, hourfcst)
 
-	fcstdatestr = date2str(check_tbl[i, ]$fcst_date)
-
-	url = paste0(urlhead, inityr, '/', inityrmon, '/', initdatefilestr, '/', initdatestr, '/flxf', fcstdatestr, '.01.', initdatestr, '.grb2')
+	url = paste0(urlhead, yearinit, '/', inityrmon, '/', initdatefilestr, '/', initdatestr, '/flxf', fcstdatestr, '.01.', initdatestr, '.grb2')
 	
 	destfile_gbm = paste0(dir_gbm, fcstdatestr, '_', '01', '_', initdatestr ,'.grb2') 
 	destfile_africa = paste0(dir_africa, fcstdatestr, '_', '01', '_', initdatestr ,'.grb2') 
@@ -89,16 +86,15 @@ get_cfs_grb = function(time_init_sel, time_fcst_sel, tempvar){
 	if(file.exists(destfile_gbm) == F){
 		download.file(url, paste0('temp_', tempvar, '.grb2'), mode = 'wb')
 		
-		system(paste0('wgrib2 ', 'temp_', tempvar, '.grb2'," -match ":(TMP:2 m above ground|PRATE|CPRAT|LHTFL|UGRD:10 m above ground|VGRD:10 m above ground):" -small_grib ", paste(lims_lon_gbm, collapse = ':'), " ", paste(lims_lat_gbm, collapse = ':'), " ", destfile_gbm), ignore.stdout = T, ignore.stderr = T)
+		system(paste0("wgrib2 ", "temp_", tempvar, ".grb2", " -g2clib 0 -match ':(TMP:2 m above ground|PRATE|CPRAT|LHTFL|UGRD:10 m above ground|VGRD:10 m above ground):' -small_grib ", paste(lims_lon_gbm, collapse = ':'), " ", paste(lims_lat_gbm, collapse = ':'), " ", destfile_gbm), ignore.stdout = T, ignore.stderr = T)
 		
-		system(paste0('wgrib2 ', 'temp_', tempvar, '.grb2'," -match '", fcst_match_list, "' -g2clib 0 -small_grib ", paste(lims_lon_gbm, collapse = ':'), " ", paste(lims_lat_gbm, collapse = ':'), " ", destfile_gbm), ignore.stdout = T, ignore.stderr = T)
 		if(file.exists(destfile_africa) == F){
-			system(paste0('wgrib2 ', 'temp_', tempvar, '.grb2'," -match ":(TMP:2 m above ground|PRATE|CPRAT|LHTFL|UGRD:10 m above ground|VGRD:10 m above ground):" -small_grib ", paste(lims_lon_africa, collapse = ':'), " ", paste(lims_lat_africa, collapse = ':'), " ", destfile_africa), ignore.stdout = T, ignore.stderr = T)
+			system(paste0("wgrib2 ", "temp_", tempvar, ".grb2", " -g2clib 0 -match ':(TMP:2 m above ground|PRATE|CPRAT|LHTFL|UGRD:10 m above ground|VGRD:10 m above ground):' -small_grib ", paste(lims_lon_africa, collapse = ':'), " ", paste(lims_lat_africa, collapse = ':'), " ", destfile_africa), ignore.stdout = T, ignore.stderr = T)
 		}
 	}
 	if(file.exists(destfile_africa) == F){
 		download.file(url, paste0('temp_', tempvar, '.grb2'), mode = 'wb')
-		system(paste0('wgrib2 ', 'temp_', tempvar, '.grb2'," -match ":(TMP:2 m above ground|PRATE|CPRAT|LHTFL|UGRD:10 m above ground|VGRD:10 m above ground):" -small_grib ", paste(lims_lon_africa, collapse = ':'), " ", paste(lims_lat_africa, collapse = ':'), " ", destfile_africa), ignore.stdout = T, ignore.stderr = T)
+		system(paste0("wgrib2 ", "temp_", tempvar, ".grb2", " -g2clib 0 -match ':(TMP:2 m above ground|PRATE|CPRAT|LHTFL|UGRD:10 m above ground|VGRD:10 m above ground):' -small_grib ", paste(lims_lon_africa, collapse = ':'), " ", paste(lims_lat_africa, collapse = ':'), " ", destfile_africa), ignore.stdout = T, ignore.stderr = T)
 	}
 }
 
@@ -109,7 +105,7 @@ foreach (i = 1:ntimes) %dopar% {
 	time_init_sel = time_dt$time_init[i]
 	time_fcst_sel = time_dt$time_fcst[i]
 	tempvar_sel = tempvar_list[i]
-	try(get_cfs_grb(time_init_sel, fcst_lead_sel, tempvar_sel))
+	try(get_cfs_grb(time_init_sel, time_fcst_sel, tempvar_sel))
 }
 stopCluster(cl)
 Sys.time() - start_time
