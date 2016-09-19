@@ -5,6 +5,8 @@
 # pulls out specified forecast variables
 ###########################################
 
+start_time()
+## load libraries 
 library(data.table)
 library(dplyr)
 library(ggplot2)
@@ -14,52 +16,58 @@ library(tidyr)
 library(doParallel)
 library(foreach)
 
+## user inputs
 dir_scratch = ''
 dir_gbm = ''
 dir_africa = ''
-
 
 lims_lon_gbm = c(73, 98)
 lims_lat_gbm = c(22, 32)
 lims_lon_africa = c(-20, 55)
 lims_lat_africa = c(-40, 40)
-var_sel = 'prate'
+
+
 fcst_lead_sel = 1440
-
-
 time_sel_start = as.POSIXct('2011-04-01', tz = 'utc')
 time_sel_end = as.POSIXct('2016-09-15 18:00', tz = 'utc')
 
+var_sel = 'prate'
 
-# time_list = seq(from = time_sel_start, to = time_sel_end, by = 'day')
-time_list = seq(from = time_sel_start, to = time_sel_end, by = '6 hour')
+ncores_sel = 6
 
-ntimes = length(time_list)
+## setup
 setwd(dir_scratch)
+
+time_list = seq(from = time_sel_start, to = time_sel_end, by = '6 hour')
+ntimes = length(time_list)
+
 tempvar_list = rep(letters, ceiling(ntimes / 26))
 
-get_cfs_ts_grb = function(var, time_sel, fcst_lead = 1440, tempvar){
-	#saves in grb format
+## download function
+get_cfs_ts_grb = function(var, time_init_sel, fcst_lead = 1440, tempvar){
 	require(data.table)
 	require(dplyr)
 	require(lubridate)
 	require(stringr)
 	require(tidyr)
-	timenow = time_sel
-	# as.POSIXct(format(time_sel, tz = 'utc'))
-	yearnow = year(timenow)
-	monthnow = str_pad(month(timenow), 2, pad = "0")
-	daynow = str_pad(day(timenow), 2, pad = "0")
-	hournow = str_pad(hour(timenow), 2, pad = "0")
+	
+	yearinit = year(time_init_sel)
+	monthinit = str_pad(month(time_init_sel), 2, pad = "0")
+	dayinit = str_pad(day(time_init_sel), 2, pad = "0")
+	hourinit = str_pad(hour(time_init_sel), 2, pad = "0")
 
-	initdatefilestr = paste0(yearnow, monthnow, daynow)
-	initdatestr = paste0(yearnow, monthnow, daynow, hournow)
+	initdatefilestr = paste0(yearinit, monthinit, dayinit)
+	initdatestr = paste0(yearinit, monthinit, daynow, hourinit)
+	
 	fcst_lead_list = seq(from = 6, to = fcst_lead, by = 6)
 	fcst_match_list = paste(paste0(':', fcst_lead_list, ' hour fcst:'), collapse = '|')
+	
 	url = paste0('http://nomads.ncdc.noaa.gov/modeldata/cfsv2_forecast_ts_9mon/', yearnow, '/', paste0(yearnow, monthnow), '/', initdatefilestr, '/', initdatestr, '/', var, '.', '01', '.', initdatestr, '.daily.grb2') 
+	
 	destfile_gbm = paste0(dir_gbm, var, '.', initdatestr, '.', '01', '.grb2') 
 	destfile_africa = paste0(dir_africa, var, '.', initdatestr, '.', '01', '.grb2') 
-	#checks filesize if existing and removes if missing forecast times
+	
+	#checks forecast lead against selected and removes file if too small
 	if(file.exists(destfile_gbm) == T){
 		file_meta = data.table(raw = system(paste('wgrib2', destfile_gbm, '-ftime'), intern = T)) %>% separate(raw, sep = c(':'), into = c('id', 'ref', 'hour')) %>% separate(hour, sep = ' ', into = c('hour', 'lab1', 'lab2'))
 		file_max_hour = max(as.numeric(file_meta$hour))
@@ -89,12 +97,13 @@ get_cfs_ts_grb = function(var, time_sel, fcst_lead = 1440, tempvar){
 	}
 }
 
-
-cl = makeCluster(7)
+## call function 
+cl = makeCluster(ncores_sel)
 registerDoParallel(cl)
 foreach (i = 1:ntimes) %dopar% {
-	time_sel = time_list[i]
+	time_init_sel = time_list[i]
 	tempvar_sel = tempvar_list[i]
-	try(get_cfs_ts_grb(var_sel, time_sel, fcst_lead_sel, tempvar_sel))
+	try(get_cfs_ts_grb(var_sel, time_init_sel, fcst_lead_sel, tempvar_sel))
 }
 stopCluster(cl)
+Sys.time() - start_time
