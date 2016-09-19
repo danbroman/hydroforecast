@@ -61,13 +61,6 @@ get_cfs_ts_grb = function(var, time_init_sel, fcst_lead = 1440, tempvar){
 	initdatestr = paste0(yearinit, monthinit, dayinit, hourinit)
 	inityrmon = paste0(yearinit, monthinit)
 	
-	yearfcst = year(time_fcst_sel)
-	monthfcst = str_pad(month(time_fcst_sel), 2, pad = "0")
-	dayfcst = str_pad(day(time_fcst_sel), 2, pad = "0")
-	hourfcst = str_pad(hour(time_fcst_sel), 2, pad = "0")
-	
-	fcstdatestr = paste0(yearfcst, monthfcst, dayfcst, hourfcst)
-
 	fcst_lead_list = seq(from = 6, to = fcst_lead, by = 6)
 	fcst_match_list = paste(paste0(':', fcst_lead_list, ' hour fcst:'), collapse = '|')
 	
