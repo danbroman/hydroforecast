@@ -62,7 +62,9 @@ get_cfs_grb = function(time_init_sel, time_fcst_sel, tempvar){
 	require(lubridate)
 	require(stringr)
 	require(tidyr)
-
+	
+	urlhead = 'http://nomads.ncdc.noaa.gov/modeldata/cfsv2_forecast_6-hourly_9mon_flxf/'
+	
 	yearinit = year(time_init_sel)
 	monthinit = str_pad(month(time_init_sel), 2, pad = "0")
 	dayinit = str_pad(day(time_init_sel), 2, pad = "0")
@@ -78,7 +80,7 @@ get_cfs_grb = function(time_init_sel, time_fcst_sel, tempvar){
 
 	fcstdatestr = date2str(check_tbl[i, ]$fcst_date)
 
-	url = paste0('http://nomads.ncdc.noaa.gov/modeldata/cfsv2_forecast_6-hourly_9mon_flxf/', inityr, '/', inityrmon, '/', initdatefilestr, '/', initdatestr, '/flxf', fcstdatestr, '.01.', initdatestr, '.grb2')
+	url = paste0(urlhead, inityr, '/', inityrmon, '/', initdatefilestr, '/', initdatestr, '/flxf', fcstdatestr, '.01.', initdatestr, '.grb2')
 	
 	destfile_gbm = paste0(dir_gbm, fcstdatestr, '_', '01', '_', initdatestr ,'.grb2') 
 	destfile_africa = paste0(dir_africa, fcstdatestr, '_', '01', '_', initdatestr ,'.grb2') 
