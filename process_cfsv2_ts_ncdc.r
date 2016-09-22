@@ -1,7 +1,8 @@
 ###########################################
 # process_cfsv2_ts_ncdc.r
 # processes grib2 files from ncdc cfsv2 archive
-# aggregates 6-hrly forecasts to 24hr accumulations
+# aggregates 6-hrly forecasts to 24hr and 5-day accumulations
+# regrids and maps to river basins using correspondence file
 # saves data in csv format
 ###########################################
 
@@ -13,18 +14,28 @@ library(lubridate)
 library(stringr)
 library(tidyr)
 library(tools)
+library(akima)
 
 ## user inputs
-dir_scratch = ''
-dir_dom = ''
+dir_scratch = '/d1/dbroman/projects/cfsv2/scratch/'
+dir_dom = '/d1/dbroman/projects/cfsv2/grib2/africa/'
 dir_dom_proc = '/d1/dbroman/projects/cfsv2/rdata/africa/'
 
-# define domain
-lat_dom = c(2, 16)
-lon_dom = c(31, 49)
+# define sub-domain of raw forecast
+lat_dom = c(1, 16)
+lon_dom = c(32, 49)
+
+# new 0.1º grid
+xp1 = seq(from = 33.05, by = 0.1, length.out = 150)
+yp1 = seq(from = 2.05, by = 0.1, length.out = 130)
+
+# correspondence file 
+c_file = fread('/d1/dbroman/projects/cfsv2/src/correspondence_ethiopiabasins.csv')
+
+# extension for outfile
 fileout_dom = '_ethiopia_24hraccum.csv'
 
-## setup
+## set up
 setwd(dir_scratch)
 
 dom_file_list = list.files(dir_dom, pattern = '*.grb2')
@@ -46,7 +57,23 @@ for(i in 1:nfiles_dom){
 
 			fcst_dat = bind_rows(fcst_dat, fcst_dat_24z)
 			fcst_dat_24hraccum = fcst_dat %>% left_join(weight_tbl) %>% mutate(value = value * weight, date_fcst = date_fcst + days(1)) %>% group_by(date_init, date_fcst, lon, lat) %>% dplyr::summarise(value = sum(value)) 
-			write.csv(fcst_dat_24hraccum, file_out)
+			date_init_temp = unique(fcst_dat_24hraccum $date_init)
+			date_fcst_list = sort(unique(fcst_dat_24hraccum$date_fcst))
+			nfcst = length(date_fcst_list)
+			fcst_dat_24hraccum_interp = NULL
+			for(j in 1:nfcst){
+				date_fcst_temp = date_fcst_list[j]
+				fcst_dat_24hraccum_fl = filter(fcst_dat_24hraccum, date_fcst == date_fcst_temp)
+
+				x_temp = fcst_dat_24hraccum_fl$lon
+				y_temp = fcst_dat_24hraccum_fl$lat
+				z_temp = fcst_dat_24hraccum_fl$value
+				interp_raw = interp(x_temp, y_temp, z_temp, xo = xp1, yo = yp1)
+				fcst_dat_24hraccum_interp_temp = data.table(date_init = date_init_temp, date_fcst = date_fcst_temp, lon = interp_raw$x, lat = rep(interp_raw$y, each = length(interp_raw$x)), value = as.numeric(interp_raw$z)) %>% mutate(value = ifelse(value < 0, 0, value))%>% filter(!is.na(value))
+				fcst_dat_24hraccum_interp = bind_rows(fcst_dat_24hraccum_interp, fcst_dat_24hraccum_interp_temp)
+			}
+			fcst_dat_24hraccum_basin = left_join(fcst_dat_24hraccum_interp, c_file) %>% filter(!is.na(name)) %>% group_by(date_init, date_fcst, ethbasin, ethbasin_I, name) %>% summarise(value = mean(value))
+			write.csv(fcst_dat_24hraccum_basin, file_out)
 		})
 	}
 }
