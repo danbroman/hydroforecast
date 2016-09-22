@@ -17,9 +17,9 @@ library(tools)
 library(akima)
 
 ## user inputs
-dir_scratch = '/d1/dbroman/projects/cfsv2/scratch/'
-dir_dom = '/d1/dbroman/projects/cfsv2/grib2/africa/'
-dir_dom_proc = '/d1/dbroman/projects/cfsv2/rdata/africa/'
+dir_scratch = ''
+dir_dom = ''
+dir_dom_proc = ''
 
 # define sub-domain of raw forecast
 lat_dom = c(1, 16)
@@ -30,7 +30,7 @@ xp1 = seq(from = 33.05, by = 0.1, length.out = 150)
 yp1 = seq(from = 2.05, by = 0.1, length.out = 130)
 
 # correspondence file 
-c_file = fread('/d1/dbroman/projects/cfsv2/src/correspondence_ethiopiabasins.csv')
+c_file = fread('')
 
 # extension for outfile
 fileout_dom = '_ethiopia_24hraccum.csv'
