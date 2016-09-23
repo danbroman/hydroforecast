@@ -109,3 +109,5 @@ foreach (i = 1:ntimes) %dopar% {
 }
 stopCluster(cl)
 Sys.time() - start_time
+system(paste("find", dir_gbm, "-size -1k -delete"))
+system(paste("find", dir_africa, "-size -1k -delete"))
