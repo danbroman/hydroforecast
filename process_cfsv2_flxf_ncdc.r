@@ -39,8 +39,10 @@ c_file = fread('')
 # extension for outfile
 fileout_dom = '_ethiopia_24hraccum'
 
+# variable of interest and fcst lead time desired - dependent on grib files available
 var_sel = 'prate'
 fcst_lead_sel = 1440
+
 ## set up
 setwd(dir_scratch)
 
